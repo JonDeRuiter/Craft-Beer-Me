@@ -13,8 +13,23 @@ namespace Craft_Beer_Me.Controllers
 {
     public class HomeController : Controller
     {
+        private DBBeer db = new DBBeer();
+
         public ActionResult Index()
         {
+            
+            //Beer testBeer = db.Beers.Last();
+            //if (testBeer == null)
+            //{
+            //    GetBeer();
+
+
+            //    //Session["FirstView"] = true;
+            //}
+            //else
+            //{
+            //    //draw from the db
+            //}
             return View();
         }
 
@@ -37,38 +52,28 @@ namespace Craft_Beer_Me.Controllers
             return View();
         }
 
-        public ActionResult Recommended(double ABV, double IBU, double SRM)
+        public ActionResult Recommended(string ABV, string IBU, string SRM)
         {
-            List<Brewery> breweries = GetBreweries(ABV, IBU, SRM);
+            //List<Beer> sixPack = GetBeer(ABV, IBU, SRM);
             
-            ViewBag.Breweries = breweries;
+            //ViewBag.SixPack = sixPack;
             return View();
             
         }
 
-        public List<Brewery> GetBreweries(double ABV, double IBU, double SRM)
+        public List<Beer> GetBeer()
         {
-            List<Brewery> breweries = new List<Brewery>();
+            List<Beer> sixPack = new List<Beer>();
 
             //This bool is to quickly switch between live db and local data
-            bool isdbDown = true;
+            bool isdbDown = false;
 
-            //gets results for each of out 14 craft brewries
+            //gets results for each of our 23 pages of booze
             if (isdbDown)
             {
-                for (int i = 0; i < 5; i++)
-                {
-                    breweries = LocalBrewery();
-                }
-            }
-            else
-            {
-                for (int i = 1; i < 15; i++)
-                {
-                    //string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + BreweryId(i) +  "/beers?key=5049b9309015a193f513d52c4d9c0003";
-
-                    //test url
-                    string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + "AqEUBQ" + "/beers?key=5049b9309015a193f513d52c4d9c0003";
+               
+                    //sixPack = LocalBrewery();
+                    string urlString = "https://api.brewerydb.com/v2/beers?key=fab6e885ba69e791a22d0143d832e493&p=" + "1";
 
                     HttpWebRequest request = WebRequest.CreateHttp(urlString);
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -76,157 +81,51 @@ namespace Craft_Beer_Me.Controllers
                     string beerData = rd.ReadToEnd();
 
                     JObject beerJson = JObject.Parse(beerData);
-                    //Valid beers get added
+                sixPack = MakeABeerList(beerJson);
 
 
+            }
+            else
+            {
 
+                for (int i = 1; i < 24; i++)
+                {
+                    
+                    string urlString = "https://api.brewerydb.com/v2/beers?key=fab6e885ba69e791a22d0143d832e493&p=" + i;
+
+                    HttpWebRequest request = WebRequest.CreateHttp(urlString);
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    StreamReader rd = new StreamReader(response.GetResponseStream());
+                    string beerData = rd.ReadToEnd();
+
+                    JObject beerJson = JObject.Parse(beerData);
+
+                    sixPack = MakeABeerList(beerJson);
                     //api limits to 10 requests a second, this *should* solve that
                     Thread.Sleep(150);
                 }
             }
             
-            return breweries;
+            return sixPack;
         }
         
-        //designed to be used by a for loop to return each of our 14 breweries
-        public string BreweryId(int id)
+
+        //Searches the Beer List
+        public List<Beer> SearchedList(JObject beerJson)
         {
-            switch (id)
-            {
-                case 1:
-                    //founders
-                    return "Idm5Y5";
-                    break;
-                case 2:
-                    //hopcat
-                    return "HizvxH";
-                    break;
-                case 3:
-                    //jolly pumpkin
-                    return "pzWq1r";
-                    break;
-                case 4:
-                    //the mitten
-                    return "bdFoir";
-                    break;
-                case 5:
-                    //harmony
-                    return "P0oEwB";
-                    break;
-                case 6:
-                    //elk brewing
-                    return "sjblac";
-                    break;
-                case 7:
-                    //perrin
-                    return "Boa6td";
-                    break;
-                case 8:
-                    //rockford brewing
-                    return "U92Ctx";
-                    break;
-                case 9:
-                    //brewery vivant
-                    return "LFkVMc";
-                    break;
-                case 10:
-                    //peoples cider
-                    return "iebYze";
-                    break;
-                case 11:
-                    //Schmohz
-                    return "AVEsqU";
-                    break;
-                case 12:
-                    //hideout
-                    return "35YJeP";
-                    break;
-                case 13:
-                    //Atwater
-                    return "boTIWO";
-                    break;
-                case 14:
-                    //new holland
-                    return "AqEUBQ";
-                    break;
-                default:
-                    break;
-            }
-            return null;
-        }
-
-        //builds brewery objects using local json data
-        public List<Brewery> LocalBrewery()
-        {
-            List<Brewery> localBrews = new List<Brewery>();
-
-            string SchmozPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Schmoz.json";
-            StreamReader rd = new StreamReader(SchmozPath);
-            string beerData = rd.ReadToEnd();
-            JObject SchmozJson = JObject.Parse(beerData);
-
-            localBrews.Add(MakeABrewery(SchmozJson, 1));
-
-            string JollyPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\JollyPumpkin.json";
-            StreamReader rd2 = new StreamReader(JollyPath);
-            string JollyData = rd2.ReadToEnd();
-            JObject JollyJson = JObject.Parse(JollyData);
-
-            localBrews.Add(MakeABrewery(JollyJson, 2));
-
-            string AtwaterPath =  @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Atwater.json";
-            StreamReader rd3 = new StreamReader(AtwaterPath);
-            string AtwaterData = rd3.ReadToEnd();
-            JObject AtwaterJson = JObject.Parse(AtwaterData);
-
-            localBrews.Add(MakeABrewery(AtwaterJson, 3));
-
-            string NewPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\NewHolland.json";
-            StreamReader rd4 = new StreamReader(NewPath);
-            string NewData = rd4.ReadToEnd();
-            JObject NewJson = JObject.Parse(NewData);
-
-            localBrews.Add(MakeABrewery(NewJson, 4));
-
-            return localBrews;
-        }
-
-        //makes each new brewery object from JSON
-        public Brewery MakeABrewery(JObject beerJson, int x)
-        {
-            Brewery GrandCircus = new Brewery();
-
+            List<Beer> firstPass = new List<Beer>();
             
-            //GrandCircus.BreweryID = beerJson[];
+            //this line should do some searching
+            //
+            
 
-            switch (x)
-            {
-                case 1:
-                    GrandCircus.Name = "Schmoz";
-                    GrandCircus.Url = "http://www.schmoz.com";
-                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AVEsqU/upload_uRmLOu-squareLarge.png";
-                    break;
-                case 2:
-                    GrandCircus.Name = "Jolly Pumpkin";
-                    GrandCircus.Url = "http://brewery.jollypumpkin.com/";
-                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/pzWq1r/upload_2YHJS9-squareLarge.png";
-                    break;
-                case 3:
-                    GrandCircus.Name = "Atwater";
-                    GrandCircus.Url = "https://www.atwaterbeer.com/";
-                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/boTIWO/upload_qHbhaE-squareLarge.png";
-                    break;
-                case 4:
-                    GrandCircus.Name = "New Holland";
-                    GrandCircus.Url = "http://newhollandbrew.com/";
-                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AqEUBQ/upload_0xEGxj-squareLarge.png";
-                    break;
-                default:
-                    break;
-            }
+            return firstPass;
+        }
 
-
-
+        //makes each new brewery object from each JSON page
+        public List<Beer> MakeABeerList(JObject beerJson)
+        {
+                        
             List<Beer> menu = new List<Beer>();
 
             Array beerArray = beerJson["data"].ToArray();
@@ -236,22 +135,16 @@ namespace Craft_Beer_Me.Controllers
             {
                 //Evaluate here
                 Beer newBeer = new Beer();
-                newBeer = MakeAMenu(beerJson, i);
+                newBeer = MakeABeer(beerJson, i);
                 menu.Add(newBeer);
 
             }
-
-            //Beer newBeer = new Beer();
-            //newBeer = MakeAMenu(beerJson);
-            //menu.Add(newBeer);
-
-            GrandCircus.Menu = menu;
-
-            return GrandCircus;
+            
+            return menu;
         }
 
         //fills the menu with valid beers based on user parameters
-        public Beer MakeAMenu(JObject beerJson, int x)
+        public Beer MakeABeer(JObject beerJson, int x)
         {
             Beer craftBeer = new Beer();
 
@@ -334,6 +227,10 @@ namespace Craft_Beer_Me.Controllers
             {
                 craftBeer.Picture = null;
             }
+
+                       
+            db.Beers.Add(craftBeer);
+            db.SaveChanges();
             
 
             return craftBeer;
