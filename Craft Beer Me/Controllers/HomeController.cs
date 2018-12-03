@@ -32,6 +32,11 @@ namespace Craft_Beer_Me.Controllers
             return View();
         }
 
+        public ActionResult results(string ABV, string IBU, string SRM)
+        {
+            return View();
+        }
+
         public ActionResult Recommended(double ABV, double IBU, double SRM)
         {
             List<Brewery> breweries = GetBreweries(ABV, IBU, SRM);
