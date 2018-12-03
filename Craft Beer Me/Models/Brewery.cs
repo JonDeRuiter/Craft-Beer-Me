@@ -18,10 +18,13 @@ namespace Craft_Beer_Me.Models
         {
 
         }
-        public Brewery(List<Brewery> Menu, string Url, string PictureUrl, string Name, string BreweryId)
+        public Brewery(List<Beer> Menu, string Url, string PictureUrl, string Name, string BreweryId)
         {
-            //this.Menu = Menu;
-            //...
+            this.Menu = Menu;
+            this.Url = Url;
+            this.PictureUrl = PictureUrl;
+            this.Name = Name;
+            this.BreweryID = "Hi";
         }
 
     }

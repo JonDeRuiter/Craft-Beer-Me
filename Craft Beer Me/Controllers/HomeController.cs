@@ -44,29 +44,46 @@ namespace Craft_Beer_Me.Controllers
         public List<Brewery> GetBreweries(double ABV, double IBU, double SRM)
         {
             List<Brewery> breweries = new List<Brewery>();
-            
+
+            //This bool is to quickly switch between live db and local data
+            bool isdbDown = true;
+
             //gets results for each of out 14 craft brewries
-            for (int i = 1; i < 15; i++)
+            if (isdbDown)
             {
-                //string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + BreweryId(i) +  "/beers?key=5049b9309015a193f513d52c4d9c0003";
-
-                //test url
-                string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + "AqEUBQ" + "/beers?key=5049b9309015a193f513d52c4d9c0003";
-
-                HttpWebRequest request = WebRequest.CreateHttp(urlString);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                StreamReader rd = new StreamReader(response.GetResponseStream());
+                //string filePath = System.IO.Path.GetFullPath("Schmoz.json");
+                string filePath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Schmoz.json";
+                StreamReader rd = new StreamReader(filePath);
                 string beerData = rd.ReadToEnd();
-
                 JObject beerJson = JObject.Parse(beerData);
-                //Valid beers get added
 
-
-
-                //api limits to 10 requests a second, this *should* solve that
-                Thread.Sleep(150);
+                breweries.Add(MakeABrewery(beerJson));
 
             }
+            else
+            {
+                for (int i = 1; i < 15; i++)
+                {
+                    //string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + BreweryId(i) +  "/beers?key=5049b9309015a193f513d52c4d9c0003";
+
+                    //test url
+                    string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + "AqEUBQ" + "/beers?key=5049b9309015a193f513d52c4d9c0003";
+
+                    HttpWebRequest request = WebRequest.CreateHttp(urlString);
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    StreamReader rd = new StreamReader(response.GetResponseStream());
+                    string beerData = rd.ReadToEnd();
+
+                    JObject beerJson = JObject.Parse(beerData);
+                    //Valid beers get added
+
+
+
+                    //api limits to 10 requests a second, this *should* solve that
+                    Thread.Sleep(150);
+                }
+            }
+            
             return breweries;
         }
         
@@ -142,40 +159,48 @@ namespace Craft_Beer_Me.Controllers
         {
             Brewery GrandCircus = new Brewery();
 
-            GrandCircus.Name = beerJson[].ToString();
-            GrandCircus.Url = beerJson[];
-            GrandCircus.PictureUrl = beerJson[];
-            GrandCircus.BreweryID = beerJson[];
-
-
+            GrandCircus.Name = "Schmoz";
+            GrandCircus.Url = "www.schmoz.com";
+            GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AVEsqU/upload_uRmLOu-squareLarge.png";
+            //GrandCircus.BreweryID = beerJson[];
+            
             List<Beer> menu = new List<Beer>();
-            //foreach (var item in collection)
-            //{
-            //    Beer newBeer = new Beer();
-            //    newBeer = MakeAMenu(beerJson);
-            //    menu.Add(newBeer);
 
-            //}
+            Array beerArray = beerJson["data"].ToArray();
 
-            Beer newBeer = new Beer();
-            newBeer = MakeAMenu(beerJson);
-            menu.Add(newBeer);
+            for (int i = 0; i < beerArray.Length; i++)
+            {
+                //Evaluate here
+                Beer newBeer = new Beer();
+                newBeer = MakeAMenu(beerJson, i);
+                menu.Add(newBeer);
+
+            }
+
+            //Beer newBeer = new Beer();
+            //newBeer = MakeAMenu(beerJson);
+            //menu.Add(newBeer);
 
             GrandCircus.Menu = menu;
+
             return GrandCircus;
         }
 
         //fills the menu with valid beers based on user parameters
-        public Beer MakeAMenu(JObject beerJson)
+        public Beer MakeAMenu(JObject beerJson, int x)
         {
             Beer craftBeer = new Beer();
 
-            craftBeer.BeerName = beerJson["data"][0]["name"].ToString();
-            craftBeer.Description = beerJson["data"][0]["style"]["description"].ToString();
-            craftBeer.ABV = (double)beerJson["data"][0]["abv"];
-            craftBeer.IBU = (double)beerJson["data"][0]["ibu"];
-            craftBeer.SRM = (double)beerJson["data"][0]["style"]["srmMin"];
-            craftBeer.CategoryName = beerJson["data"][0]["style"]["shortName"].ToString();
+            //Note: Not all JSON beers have the category 'Available' hmmm...
+
+            
+            craftBeer.BeerName = beerJson["data"][x]["name"].ToString();
+            craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
+            craftBeer.ABV = (double)beerJson["data"][x]["abv"];
+            craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
+            craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
+            craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
+            craftBeer.Picture = beerJson["data"][x]["labels"]["medium"].ToString();
 
             return craftBeer;
         }
