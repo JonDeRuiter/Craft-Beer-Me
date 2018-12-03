@@ -72,9 +72,7 @@ namespace Craft_Beer_Me.Controllers
 
                     JObject beerJson = JObject.Parse(beerData);
                     //Valid beers get added
-
-
-
+                                       
                     //api limits to 10 requests a second, this *should* solve that
                     Thread.Sleep(150);
                 }
