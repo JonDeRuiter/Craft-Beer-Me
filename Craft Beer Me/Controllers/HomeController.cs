@@ -56,14 +56,10 @@ namespace Craft_Beer_Me.Controllers
             //gets results for each of out 14 craft brewries
             if (isdbDown)
             {
-                //string filePath = System.IO.Path.GetFullPath("Schmoz.json");
-                string filePath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Schmoz.json";
-                StreamReader rd = new StreamReader(filePath);
-                string beerData = rd.ReadToEnd();
-                JObject beerJson = JObject.Parse(beerData);
-
-                breweries.Add(MakeABrewery(beerJson));
-
+                for (int i = 0; i < 5; i++)
+                {
+                    breweries = LocalBrewery();
+                }
             }
             else
             {
@@ -159,20 +155,83 @@ namespace Craft_Beer_Me.Controllers
             return null;
         }
 
+        //builds brewery objects using local json data
+        public List<Brewery> LocalBrewery()
+        {
+            List<Brewery> localBrews = new List<Brewery>();
+
+            string SchmozPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Schmoz.json";
+            StreamReader rd = new StreamReader(SchmozPath);
+            string beerData = rd.ReadToEnd();
+            JObject SchmozJson = JObject.Parse(beerData);
+
+            localBrews.Add(MakeABrewery(SchmozJson, 1));
+
+            string JollyPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\JollyPumpkin.json";
+            StreamReader rd2 = new StreamReader(JollyPath);
+            string JollyData = rd2.ReadToEnd();
+            JObject JollyJson = JObject.Parse(JollyData);
+
+            localBrews.Add(MakeABrewery(JollyJson, 2));
+
+            string AtwaterPath =  @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Atwater.json";
+            StreamReader rd3 = new StreamReader(AtwaterPath);
+            string AtwaterData = rd3.ReadToEnd();
+            JObject AtwaterJson = JObject.Parse(AtwaterData);
+
+            localBrews.Add(MakeABrewery(AtwaterJson, 3));
+
+            string NewPath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\NewHolland.json";
+            StreamReader rd4 = new StreamReader(NewPath);
+            string NewData = rd4.ReadToEnd();
+            JObject NewJson = JObject.Parse(NewData);
+
+            localBrews.Add(MakeABrewery(NewJson, 4));
+
+            return localBrews;
+        }
+
         //makes each new brewery object from JSON
-        public Brewery MakeABrewery(JObject beerJson)
+        public Brewery MakeABrewery(JObject beerJson, int x)
         {
             Brewery GrandCircus = new Brewery();
 
-            GrandCircus.Name = "Schmoz";
-            GrandCircus.Url = "www.schmoz.com";
-            GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AVEsqU/upload_uRmLOu-squareLarge.png";
-            //GrandCircus.BreweryID = beerJson[];
             
+            //GrandCircus.BreweryID = beerJson[];
+
+            switch (x)
+            {
+                case 1:
+                    GrandCircus.Name = "Schmoz";
+                    GrandCircus.Url = "http://www.schmoz.com";
+                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AVEsqU/upload_uRmLOu-squareLarge.png";
+                    break;
+                case 2:
+                    GrandCircus.Name = "Jolly Pumpkin";
+                    GrandCircus.Url = "http://brewery.jollypumpkin.com/";
+                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/pzWq1r/upload_2YHJS9-squareLarge.png";
+                    break;
+                case 3:
+                    GrandCircus.Name = "Atwater";
+                    GrandCircus.Url = "https://www.atwaterbeer.com/";
+                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/boTIWO/upload_qHbhaE-squareLarge.png";
+                    break;
+                case 4:
+                    GrandCircus.Name = "New Holland";
+                    GrandCircus.Url = "http://newhollandbrew.com/";
+                    GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AqEUBQ/upload_0xEGxj-squareLarge.png";
+                    break;
+                default:
+                    break;
+            }
+
+
+
             List<Beer> menu = new List<Beer>();
 
             Array beerArray = beerJson["data"].ToArray();
 
+            //beerArray.Length
             for (int i = 0; i < beerArray.Length; i++)
             {
                 //Evaluate here
@@ -200,12 +259,82 @@ namespace Craft_Beer_Me.Controllers
 
             
             craftBeer.BeerName = beerJson["data"][x]["name"].ToString();
-            craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
-            craftBeer.ABV = (double)beerJson["data"][x]["abv"];
-            craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
-            craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
-            craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
-            craftBeer.Picture = beerJson["data"][x]["labels"]["medium"].ToString();
+            
+            //Description
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["description"] != null)
+            {
+                craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
+            }
+            else
+            {
+                craftBeer.Description = null;
+            }
+
+            //ABV
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["abvMin"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMin"];
+            }
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["abvMax"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMax"];
+            }
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["abv"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["abv"];
+            }
+            else
+            {
+                craftBeer.ABV = 0;
+            }
+            
+            //IBU
+            if (beerJson["data"][x]["ibu"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
+            }
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["ibuMin"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMin"];
+            }
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["ibuMax"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMax"];
+            }
+            else
+            {
+                craftBeer.IBU = 0;
+            }
+           
+            //SRM
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["srmMin"] != null)
+            {
+                craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
+            }
+            else
+            {
+                craftBeer.SRM = 0;
+            }
+
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["shortName"] != null)
+            {
+                craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
+            }
+            else
+            {
+                craftBeer.CategoryName = null;
+            }
+            
+
+            if (beerJson["data"][x]["labels"] != null && beerJson["data"][x]["labels"]["medium"] != null)
+            {
+                craftBeer.Picture = beerJson["data"][x]["labels"]["medium"].ToString();
+            }
+            else
+            {
+                craftBeer.Picture = null;
+            }
+            
 
             return craftBeer;
         }
