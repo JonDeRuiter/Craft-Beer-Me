@@ -168,6 +168,7 @@ namespace Craft_Beer_Me.Controllers
 
             Array beerArray = beerJson["data"].ToArray();
 
+            //beerArray.Length
             for (int i = 0; i < beerArray.Length; i++)
             {
                 //Evaluate here
@@ -195,12 +196,74 @@ namespace Craft_Beer_Me.Controllers
 
             
             craftBeer.BeerName = beerJson["data"][x]["name"].ToString();
-            craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
-            craftBeer.ABV = (double)beerJson["data"][x]["abv"];
-            craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
-            craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
+            
+            //Description
+            if (beerJson["data"][x]["style"]["description"] != null)
+            {
+                craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
+            }
+            else
+            {
+                craftBeer.Description = null;
+            }
+
+            //ABV
+            if (beerJson["data"][x]["style"]["abvMin"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMin"];
+            }
+            else if (beerJson["data"][x]["style"]["abvMax"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMax"];
+            }
+            else if (beerJson["data"][x]["abv"] != null)
+            {
+                craftBeer.ABV = (double)beerJson["data"][x]["abv"];
+            }
+            else
+            {
+                craftBeer.ABV = 0;
+            }
+            
+            //IBU
+            if (beerJson["data"][x]["ibu"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
+            }
+            else if (beerJson["data"][x]["style"]["ibuMin"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMin"];
+            }
+            else if (beerJson["data"][x]["style"]["ibuMax"] != null)
+            {
+                craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMax"];
+            }
+            else
+            {
+                craftBeer.IBU = 0;
+            }
+           
+            //SRM
+            if (beerJson["data"][x]["style"]["srmMin"] != null)
+            {
+                craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
+            }
+            else
+            {
+                craftBeer.SRM = 0;
+            }
+
             craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
-            craftBeer.Picture = beerJson["data"][x]["labels"]["medium"].ToString();
+
+            if (beerJson["data"][x]["labels"] != null && beerJson["data"][x]["labels"]["medium"] != null)
+            {
+                craftBeer.Picture = beerJson["data"][x]["labels"]["medium"].ToString();
+            }
+            else
+            {
+                craftBeer.Picture = null;
+            }
+            
 
             return craftBeer;
         }
