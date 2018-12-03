@@ -13,8 +13,23 @@ namespace Craft_Beer_Me.Controllers
 {
     public class HomeController : Controller
     {
+        private DBBeer db = new DBBeer();
+
         public ActionResult Index()
         {
+            
+            //Beer testBeer = db.Beers.Last();
+            //if (testBeer == null)
+            //{
+            //    GetBeer();
+
+
+            //    //Session["FirstView"] = true;
+            //}
+            //else
+            //{
+            //    //draw from the db
+            //}
             return View();
         }
 
@@ -39,21 +54,21 @@ namespace Craft_Beer_Me.Controllers
 
         public ActionResult Recommended(string ABV, string IBU, string SRM)
         {
-            List<Beer> sixPack = GetBeer(ABV, IBU, SRM);
+            //List<Beer> sixPack = GetBeer(ABV, IBU, SRM);
             
-            ViewBag.SixPack = sixPack;
+            //ViewBag.SixPack = sixPack;
             return View();
             
         }
 
-        public List<Beer> GetBeer(string ABV, string IBU, string SRM)
+        public List<Beer> GetBeer()
         {
             List<Beer> sixPack = new List<Beer>();
 
             //This bool is to quickly switch between live db and local data
-            bool isdbDown = true;
+            bool isdbDown = false;
 
-            //gets results for each of out 14 craft brewries
+            //gets results for each of our 23 pages of booze
             if (isdbDown)
             {
                
@@ -67,6 +82,7 @@ namespace Craft_Beer_Me.Controllers
 
                     JObject beerJson = JObject.Parse(beerData);
                 sixPack = MakeABeerList(beerJson);
+
 
             }
             else
@@ -83,8 +99,8 @@ namespace Craft_Beer_Me.Controllers
                     string beerData = rd.ReadToEnd();
 
                     JObject beerJson = JObject.Parse(beerData);
-                    //Valid beers get added
-                                       
+
+                    sixPack = MakeABeerList(beerJson);
                     //api limits to 10 requests a second, this *should* solve that
                     Thread.Sleep(150);
                 }
@@ -211,6 +227,10 @@ namespace Craft_Beer_Me.Controllers
             {
                 craftBeer.Picture = null;
             }
+
+                       
+            db.Beers.Add(craftBeer);
+            db.SaveChanges();
             
 
             return craftBeer;
