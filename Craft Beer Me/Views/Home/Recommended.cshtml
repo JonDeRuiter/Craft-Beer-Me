@@ -1,0 +1,50 @@
+﻿<header>
+    <title>We Recommend: </title>
+</header>
+
+<body>
+
+    @foreach (var brewery in ViewBag.Breweries)
+    {
+    <table>
+
+        <tr>
+            <th>
+                <img src="" alt="No Picture"/>
+            </th>
+            <th>
+                @brewery.Name
+            </th>
+            <th>
+                <a href="">Website</a>
+            </th>
+            <th>
+                Description
+            </th>
+
+        </tr>
+        @foreach (var beer in ViewBag.Breweries.Menu)
+        {
+            <tr>
+                <td>
+                    Beer Picture
+                </td>
+                <td>
+                    @beer.BeerName
+                </td>
+                <td>
+                    Beer Category
+                </td>
+                <td>
+                    Beer Description
+                </td>
+            </tr>
+        }
+        <br /><br />
+    </table>
+    }
+</body>
+
+<footer>
+
+</footer>
