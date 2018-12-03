@@ -1,51 +1,47 @@
-﻿@*@model IEnumerable<Craft_Beer_Me.Models.Beer>*@
-@model IEnumerable <Craft_Beer_Me.Models.Brewery>
+﻿@model IEnumerable<Craft_Beer_Me.Models.Beer>
+
 <header>
     <title>We Recommend: </title>
 </header>
 
 <body>
 
-    @foreach (var brewery in ViewBag.Breweries)
-    {
-        <table>
+    <table>
 
+        <tr>
+            <th>
+               Picture
+            </th>
+            <th>
+                Name
+            </th>
+            <th>
+                Website
+            </th>
+            <th>
+                Beer Description
+            </th>
+
+        </tr>
+        @foreach (var beer in ViewBag.SixPack)
+        {
             <tr>
-                <th>
-                    <img src="@brewery.PictureUrl" alt="No Picture" />
-                </th>
-                <th>
-                    @brewery.Name
-                </th>
-                <th>
-                    <a href="@brewery.Url">Website</a>
-                </th>
-                <th>
-                    Menu Description
-                </th>
-
+                <td>
+                    <img src="@beer.Picture" alt="No Picture" />
+                </td>
+                <td>
+                    @beer.BeerName
+                </td>
+                <td>
+                    @beer.CategoryName
+                </td>
+                <td>
+                    @beer.Description
+                </td>
             </tr>
-            @foreach (var beer in brewery.Menu)
-            {
-                <tr>
-                    <td>
-                        <img src="@beer.Picture" alt="Beer Picture" />
-                    </td>
-                    <td>
-                        @beer.BeerName
-                    </td>
-                    <td>
-                        @beer.CategoryName
-                    </td>
-                    <td>
-                        @beer.Description
-                    </td>
-                </tr>
-            }
+        }
 
-        </table>
-        <br /><br />
-    }
+    </table>
 </body>
 
 <footer>
