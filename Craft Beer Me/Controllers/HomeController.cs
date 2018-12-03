@@ -32,18 +32,23 @@ namespace Craft_Beer_Me.Controllers
             return View();
         }
 
-        public ActionResult Recommended(double ABV, double IBU, double SRM)
+        public ActionResult results(string ABV, string IBU, string SRM)
         {
-            List<Brewery> breweries = GetBreweries(ABV, IBU, SRM);
+            return View();
+        }
+
+        public ActionResult Recommended(string ABV, string IBU, string SRM)
+        {
+            List<Beer> sixPack = GetBeer(ABV, IBU, SRM);
             
-            ViewBag.Breweries = breweries;
+            ViewBag.SixPack = sixPack;
             return View();
             
         }
 
-        public List<Brewery> GetBreweries(double ABV, double IBU, double SRM)
+        public List<Beer> GetBeer(string ABV, string IBU, string SRM)
         {
-            List<Brewery> breweries = new List<Brewery>();
+            List<Beer> sixPack = new List<Beer>();
 
             //This bool is to quickly switch between live db and local data
             bool isdbDown = true;
@@ -51,23 +56,26 @@ namespace Craft_Beer_Me.Controllers
             //gets results for each of out 14 craft brewries
             if (isdbDown)
             {
-                //string filePath = System.IO.Path.GetFullPath("Schmoz.json");
-                string filePath = @"C:\Users\GC Student\Source\Repos\Craft Beer Me\Craft Beer Me\Controllers\Schmoz.json";
-                StreamReader rd = new StreamReader(filePath);
-                string beerData = rd.ReadToEnd();
-                JObject beerJson = JObject.Parse(beerData);
+               
+                    //sixPack = LocalBrewery();
+                    string urlString = "https://api.brewerydb.com/v2/beers?key=fab6e885ba69e791a22d0143d832e493&p=" + "1";
 
-                breweries.Add(MakeABrewery(beerJson));
+                    HttpWebRequest request = WebRequest.CreateHttp(urlString);
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    StreamReader rd = new StreamReader(response.GetResponseStream());
+                    string beerData = rd.ReadToEnd();
+
+                    JObject beerJson = JObject.Parse(beerData);
+                sixPack = MakeABeerList(beerJson);
 
             }
             else
             {
-                for (int i = 1; i < 15; i++)
-                {
-                    //string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + BreweryId(i) +  "/beers?key=5049b9309015a193f513d52c4d9c0003";
 
-                    //test url
-                    string urlString = "https://sandbox-api.brewerydb.com/v2/" + "brewery/" + "AqEUBQ" + "/beers?key=5049b9309015a193f513d52c4d9c0003";
+                for (int i = 1; i < 24; i++)
+                {
+                    
+                    string urlString = "https://api.brewerydb.com/v2/beers?key=fab6e885ba69e791a22d0143d832e493&p=" + i;
 
                     HttpWebRequest request = WebRequest.CreateHttp(urlString);
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -76,94 +84,32 @@ namespace Craft_Beer_Me.Controllers
 
                     JObject beerJson = JObject.Parse(beerData);
                     //Valid beers get added
-
-
-
+                                       
                     //api limits to 10 requests a second, this *should* solve that
                     Thread.Sleep(150);
                 }
             }
             
-            return breweries;
+            return sixPack;
         }
         
-        //designed to be used by a for loop to return each of our 14 breweries
-        public string BreweryId(int id)
+
+        //Searches the Beer List
+        public List<Beer> SearchedList(JObject beerJson)
         {
-            switch (id)
-            {
-                case 1:
-                    //founders
-                    return "Idm5Y5";
-                    break;
-                case 2:
-                    //hopcat
-                    return "HizvxH";
-                    break;
-                case 3:
-                    //jolly pumpkin
-                    return "pzWq1r";
-                    break;
-                case 4:
-                    //the mitten
-                    return "bdFoir";
-                    break;
-                case 5:
-                    //harmony
-                    return "P0oEwB";
-                    break;
-                case 6:
-                    //elk brewing
-                    return "sjblac";
-                    break;
-                case 7:
-                    //perrin
-                    return "Boa6td";
-                    break;
-                case 8:
-                    //rockford brewing
-                    return "U92Ctx";
-                    break;
-                case 9:
-                    //brewery vivant
-                    return "LFkVMc";
-                    break;
-                case 10:
-                    //peoples cider
-                    return "iebYze";
-                    break;
-                case 11:
-                    //Schmohz
-                    return "AVEsqU";
-                    break;
-                case 12:
-                    //hideout
-                    return "35YJeP";
-                    break;
-                case 13:
-                    //Atwater
-                    return "boTIWO";
-                    break;
-                case 14:
-                    //new holland
-                    return "AqEUBQ";
-                    break;
-                default:
-                    break;
-            }
-            return null;
+            List<Beer> firstPass = new List<Beer>();
+            
+            //this line should do some searching
+            //
+            
+
+            return firstPass;
         }
 
-        //makes each new brewery object from JSON
-        public Brewery MakeABrewery(JObject beerJson)
+        //makes each new brewery object from each JSON page
+        public List<Beer> MakeABeerList(JObject beerJson)
         {
-            Brewery GrandCircus = new Brewery();
-
-            GrandCircus.Name = "Schmoz";
-            GrandCircus.Url = "www.schmoz.com";
-            GrandCircus.PictureUrl = "https://brewerydb-images.s3.amazonaws.com/brewery/AVEsqU/upload_uRmLOu-squareLarge.png";
-            //GrandCircus.BreweryID = beerJson[];
-            
+                        
             List<Beer> menu = new List<Beer>();
 
             Array beerArray = beerJson["data"].ToArray();
@@ -173,22 +119,16 @@ namespace Craft_Beer_Me.Controllers
             {
                 //Evaluate here
                 Beer newBeer = new Beer();
-                newBeer = MakeAMenu(beerJson, i);
+                newBeer = MakeABeer(beerJson, i);
                 menu.Add(newBeer);
 
             }
-
-            //Beer newBeer = new Beer();
-            //newBeer = MakeAMenu(beerJson);
-            //menu.Add(newBeer);
-
-            GrandCircus.Menu = menu;
-
-            return GrandCircus;
+            
+            return menu;
         }
 
         //fills the menu with valid beers based on user parameters
-        public Beer MakeAMenu(JObject beerJson, int x)
+        public Beer MakeABeer(JObject beerJson, int x)
         {
             Beer craftBeer = new Beer();
 
@@ -198,7 +138,7 @@ namespace Craft_Beer_Me.Controllers
             craftBeer.BeerName = beerJson["data"][x]["name"].ToString();
             
             //Description
-            if (beerJson["data"][x]["style"]["description"] != null)
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["description"] != null)
             {
                 craftBeer.Description = beerJson["data"][x]["style"]["description"].ToString();
             }
@@ -208,15 +148,15 @@ namespace Craft_Beer_Me.Controllers
             }
 
             //ABV
-            if (beerJson["data"][x]["style"]["abvMin"] != null)
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["abvMin"] != null)
             {
                 craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMin"];
             }
-            else if (beerJson["data"][x]["style"]["abvMax"] != null)
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["abvMax"] != null)
             {
                 craftBeer.ABV = (double)beerJson["data"][x]["style"]["abvMax"];
             }
-            else if (beerJson["data"][x]["abv"] != null)
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["abv"] != null)
             {
                 craftBeer.ABV = (double)beerJson["data"][x]["abv"];
             }
@@ -230,11 +170,11 @@ namespace Craft_Beer_Me.Controllers
             {
                 craftBeer.IBU = (double)beerJson["data"][x]["ibu"];
             }
-            else if (beerJson["data"][x]["style"]["ibuMin"] != null)
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["ibuMin"] != null)
             {
                 craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMin"];
             }
-            else if (beerJson["data"][x]["style"]["ibuMax"] != null)
+            else if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["ibuMax"] != null)
             {
                 craftBeer.IBU = (double)beerJson["data"][x]["style"]["ibuMax"];
             }
@@ -244,7 +184,7 @@ namespace Craft_Beer_Me.Controllers
             }
            
             //SRM
-            if (beerJson["data"][x]["style"]["srmMin"] != null)
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["srmMin"] != null)
             {
                 craftBeer.SRM = (double)beerJson["data"][x]["style"]["srmMin"];
             }
@@ -253,7 +193,15 @@ namespace Craft_Beer_Me.Controllers
                 craftBeer.SRM = 0;
             }
 
-            craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
+            if (beerJson["data"][x]["style"] != null && beerJson["data"][x]["style"]["shortName"] != null)
+            {
+                craftBeer.CategoryName = beerJson["data"][x]["style"]["shortName"].ToString();
+            }
+            else
+            {
+                craftBeer.CategoryName = null;
+            }
+            
 
             if (beerJson["data"][x]["labels"] != null && beerJson["data"][x]["labels"]["medium"] != null)
             {
